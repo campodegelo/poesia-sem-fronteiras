@@ -13,13 +13,17 @@ function MapboxMap() {
   // will contain `null` by default
   const mapNode = useRef(null);
 
-  const [lng, setLng] = useState(-70.9);
-  const [lat, setLat] = useState(42.35);
-  const [zoom, setZoom] = useState(9);
+  const [lng, setLng] = useState(25);
+  const [lat, setLat] = useState(25);
+  const [zoom, setZoom] = useState(2);
+
+  const [countryName, setCountryName] = useState("");
+  const [countryISO3, setCountryISO3] = useState("");
+  const [countryWasClicked, setCountryWasClicked] = useState(false);
 
   useEffect(() => {
     const node = mapNode.current;
-    let hoveredCountry: string | number | null | undefined = null;
+    let hoveredCountry: string | number | undefined = '';
     // if the window object is not found, that means
     // the component is rendered on the server
     // or the dom node is not initialized, then return early
@@ -48,7 +52,6 @@ function MapboxMap() {
         source: "countries",
         layout: {},
         paint: {
-          // "fill-color": "#1a1d62",
           "fill-color": "#D14545",
           "fill-opacity": [
             "case",
@@ -77,31 +80,33 @@ function MapboxMap() {
 
     // Event Handlers on the map
     mapboxMap.on("click", "countries-layer", function (e) {
-      // console.log("country name = ", e.features[0].properties.name);
-      // console.log("ISO 3 = ", e.features[0].properties.adm0_a3);
+      if (e?.features?.length && e?.features[0]?.properties) {
+        console.log("country name = ", e?.features[0]?.properties?.name);
+        console.log("ISO 3 = ", e?.features[0]?.properties?.adm0_a3);
 
-      node.setState({
-        name: e.features[0].properties.name,
-        countryISO3: e.features[0].properties.adm0_a3,
-        countryWasClicked: true,
-      });
+        setCountryName(e.features[0].properties.name);
+        setCountryISO3(e.features[0].properties.adm0_a3);
+        setCountryWasClicked(true);
+      }
     });
 
     // Change the cursor to a pointer when the mouse is over the states layer.
     mapboxMap.on("mousemove", "countries-layer", function (e) {
-      mapboxMap.getCanvas().style.cursor = "pointer";
-      // console.log(e.features);
-      if (hoveredCountry) {
-        mapboxMap.removeFeatureState({
-          source: "countries",
-          id: hoveredCountry,
-        });
+      if (e?.features?.length) {
+        mapboxMap.getCanvas().style.cursor = "pointer";
+        // console.log(e.features);
+        if (hoveredCountry) {
+          mapboxMap.removeFeatureState({
+            source: "countries",
+            id: hoveredCountry,
+          });
+        }
+        hoveredCountry = e.features[0].id;
+        mapboxMap.setFeatureState(
+          { source: "countries", id: hoveredCountry },
+          { hover: true }
+        );
       }
-      hoveredCountry = e.features[0].id;
-      mapboxMap.setFeatureState(
-        { source: "countries", id: hoveredCountry },
-        { hover: true }
-      );
     });
 
     // Change it back to a pointer when it leaves.
@@ -111,14 +116,14 @@ function MapboxMap() {
         { source: "countries", id: hoveredCountry },
         { hover: false }
       );
-      hoveredCountry = null;
+      hoveredCountry = '';
     });
 
     // updating coordinates
     mapboxMap.on("move", () => {
-      setLng(mapboxMap.getCenter().lng.toFixed(4));
-      setLat(mapboxMap.getCenter().lat.toFixed(4));
-      setZoom(mapboxMap.getZoom().toFixed(2));
+      setLng(parseInt(mapboxMap.getCenter().lng.toFixed(4)));
+      setLat(parseInt(mapboxMap.getCenter().lat.toFixed(4)));
+      setZoom(parseInt(mapboxMap.getZoom().toFixed(2)));
     });
 
     // save the map object to React.useState
