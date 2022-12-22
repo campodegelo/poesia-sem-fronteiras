@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from 'next/router'
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import geoJson from "../custom.geo.json";
-// import the mapbox-gl styles so that the map is displayed correctly
 
 function MapboxMap() {
+  const router = useRouter();
   // this is where the map instance will be stored after initialization
   const [map, setMap] = useState<mapboxgl.Map>();
 
@@ -84,9 +85,11 @@ function MapboxMap() {
         console.log("country name = ", e?.features[0]?.properties?.name);
         console.log("ISO 3 = ", e?.features[0]?.properties?.adm0_a3);
 
-        setCountryName(e.features[0].properties.name);
-        setCountryISO3(e.features[0].properties.adm0_a3);
-        setCountryWasClicked(true);
+        // setCountryName(e.features[0].properties.name);
+        // setCountryISO3(e.features[0].properties.adm0_a3);
+        // setCountryWasClicked(true);
+
+        router.push(`country/${e.features[0].properties.adm0_a3}`)
       }
     });
 
